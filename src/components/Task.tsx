@@ -1,0 +1,104 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Edit, MoreVertical, Trash2 } from 'lucide-react';
+
+interface TaskProps {
+  id: string;
+  title: string;
+  description?: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+export default function Task({ id, title, description, onEdit, onDelete }: TaskProps) {
+  const [showMenu, setShowMenu] = useState(false);
+
+  const { 
+    attributes, 
+    listeners, 
+    setNodeRef, 
+    transform, 
+    transition,
+    isDragging 
+  } = useSortable({ 
+    id,
+    data: {
+      type: 'task',
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu(!showMenu);
+  };
+
+  const handleEdit = () => {
+    onEdit();
+    setShowMenu(false);
+  };
+
+  const handleDelete = () => {
+    onDelete();
+    setShowMenu(false);
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-white p-3 mb-2 rounded-md shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
+      {...attributes}
+      {...listeners}
+    >
+      <div className="flex items-start justify-between">
+        <div className="w-full overflow-hidden">
+          <h4 className="text-sm font-medium text-gray-900 mb-1 truncate">{title}</h4>
+          {description && (
+            <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
+          )}
+        </div>
+        
+        <div className="relative ml-2 flex-shrink-0">
+          <button
+            onClick={handleMenuToggle}
+            className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </button>
+          
+          {showMenu && (
+            <div className="absolute right-0 mt-1 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+              <div className="py-1" role="menu" aria-orientation="vertical">
+                <button
+                  onClick={handleEdit}
+                  className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                >
+                  <Edit className="h-4 w-4 inline mr-2" />
+                  Edit Task
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  role="menuitem"
+                >
+                  <Trash2 className="h-4 w-4 inline mr-2" />
+                  Delete Task
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+} 
