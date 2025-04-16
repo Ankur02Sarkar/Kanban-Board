@@ -5,6 +5,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Edit, MoreVertical, Plus, Trash2 } from 'lucide-react';
 import Task from './Task';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 interface TaskType {
   id: string;
@@ -50,6 +51,7 @@ export default function Column({
     id,
     data: {
       type: 'column',
+      id,
     }
   });
 
@@ -84,11 +86,17 @@ export default function Column({
     setShowMenu(false);
   };
 
+  // Sort tasks by order
+  const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
+  // Get task IDs for SortableContext
+  const taskIds = sortedTasks.map(task => task.id);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className="w-72 flex-shrink-0 bg-gray-100 rounded-md shadow-sm flex flex-col"
+      data-column-id={id}
     >
       <div className="p-3 bg-white rounded-t-md shadow-sm flex items-center justify-between" {...attributes} {...listeners}>
         {isEditing ? (
@@ -140,16 +148,18 @@ export default function Column({
       </div>
       
       <div className="flex-1 p-2 overflow-y-auto max-h-[calc(100vh-12rem)]">
-        {tasks.map((task) => (
-          <Task
-            key={task.id}
-            id={task.id}
-            title={task.title}
-            description={task.description}
-            onEdit={() => onEditTask(task.id)}
-            onDelete={() => onDeleteTask(task.id)}
-          />
-        ))}
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          {sortedTasks.map((task) => (
+            <Task
+              key={task.id}
+              id={task.id}
+              title={task.title}
+              description={task.description}
+              onEdit={() => onEditTask(task.id)}
+              onDelete={() => onDeleteTask(task.id)}
+            />
+          ))}
+        </SortableContext>
       </div>
       
       <div className="p-2 bg-white rounded-b-md">

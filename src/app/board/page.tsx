@@ -17,8 +17,18 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  closestCenter,
+  MeasuringStrategy,
+  KeyboardSensor,
+  defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
-import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { 
+  SortableContext, 
+  horizontalListSortingStrategy, 
+  verticalListSortingStrategy, 
+  arrayMove,
+  sortableKeyboardCoordinates
+} from '@dnd-kit/sortable';
 
 // Import interfaces for the Board context
 interface Task {
@@ -77,8 +87,11 @@ const BoardContent = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
       },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
@@ -350,9 +363,15 @@ const BoardContent = () => {
         {board ? (
           <DndContext
             sensors={sensors}
+            collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            measuring={{
+              droppable: {
+                strategy: MeasuringStrategy.Always
+              },
+            }}
           >
             <div className="flex space-x-4 min-h-[calc(100vh-10rem)]">
               <SortableContext 

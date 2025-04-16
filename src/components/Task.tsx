@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Edit, MoreVertical, Trash2 } from 'lucide-react';
@@ -15,6 +15,30 @@ interface TaskProps {
 
 export default function Task({ id, title, description, onEdit, onDelete }: TaskProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Debug log when component mounts
+  useEffect(() => {
+    console.log("Task component mounted with ID:", id);
+    return () => console.log("Task component unmounted with ID:", id);
+  }, [id]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   const { 
     attributes, 
@@ -27,6 +51,7 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     id,
     data: {
       type: 'task',
+      id,
     }
   });
 
@@ -34,6 +59,7 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 100 : 'auto',
   };
 
   const handleMenuToggle = (e: React.MouseEvent) => {
@@ -41,13 +67,22 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     setShowMenu(!showMenu);
   };
 
-  const handleEdit = () => {
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("Editing task with ID:", id);
     onEdit();
     setShowMenu(false);
   };
 
-  const handleDelete = () => {
-    onDelete();
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("Deleting task with ID:", id);
+    // Make sure we don't call onDelete with undefined
+    if (id) {
+      onDelete();
+    } else {
+      console.error("Cannot delete task with undefined ID");
+    }
     setShowMenu(false);
   };
 
@@ -58,6 +93,7 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
       className="bg-white p-3 mb-2 rounded-md shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
       {...attributes}
       {...listeners}
+      data-task-id={id}
     >
       <div className="flex items-start justify-between">
         <div className="w-full overflow-hidden">
@@ -76,7 +112,10 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
           </button>
           
           {showMenu && (
-            <div className="absolute right-0 mt-1 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+            <div 
+              ref={menuRef}
+              className="absolute right-0 mt-1 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20"
+            >
               <div className="py-1" role="menu" aria-orientation="vertical">
                 <button
                   onClick={handleEdit}
