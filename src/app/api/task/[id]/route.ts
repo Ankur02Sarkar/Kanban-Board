@@ -6,14 +6,11 @@ import Task from '@/lib/models/Task';
 import { authenticateUser } from '@/lib/auth/middleware';
 import { successResponse, errorResponse, validationError, serverError } from '@/lib/utils/api-response';
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
 // Update a task
-export async function PATCH(req: NextRequest, { params }: Params) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const auth = await authenticateUser(req);
     
@@ -22,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     const { title, description, columnId, order } = await req.json();
-    const taskId = params.id;
+    const { id: taskId } = await params;
 
     await connectToDatabase();
     
@@ -121,7 +118,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // Delete a task
-export async function DELETE(req: NextRequest, { params }: Params) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const auth = await authenticateUser(req);
     
@@ -129,7 +129,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       return auth;
     }
 
-    const taskId = params.id;
+    const { id: taskId } = await params;
 
     await connectToDatabase();
     
