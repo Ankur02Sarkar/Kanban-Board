@@ -313,7 +313,20 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (data.success) {
+        // Optimistically update the UI
+        const newColumn = data.data.column;
+        setBoard(prevBoard => {
+          if (!prevBoard) return null;
+          return {
+            ...prevBoard,
+            columns: [...prevBoard.columns, {
+              ...newColumn,
+              tasks: []
+            }]
+          };
+        });
+      } else {
         toast.error(data.message || 'Failed to create column');
       }
     } catch (error) {
@@ -333,7 +346,26 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (data.success) {
+        // Optimistically update the UI
+        const newTask = data.data.task;
+        setBoard(prevBoard => {
+          if (!prevBoard) return null;
+          
+          return {
+            ...prevBoard,
+            columns: prevBoard.columns.map(col => {
+              if (col.id === columnId) {
+                return {
+                  ...col,
+                  tasks: [...col.tasks, newTask]
+                };
+              }
+              return col;
+            })
+          };
+        });
+      } else {
         toast.error(data.message || 'Failed to create task');
       }
     } catch (error) {
@@ -353,7 +385,27 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (data.success) {
+        // Optimistically update the UI
+        setBoard(prevBoard => {
+          if (!prevBoard) return null;
+          
+          return {
+            ...prevBoard,
+            columns: prevBoard.columns.map(col => {
+              return {
+                ...col,
+                tasks: col.tasks.map(task => {
+                  if (task.id === taskId) {
+                    return { ...task, ...updates };
+                  }
+                  return task;
+                })
+              };
+            })
+          };
+        });
+      } else {
         toast.error(data.message || 'Failed to update task');
       }
     } catch (error) {
@@ -371,7 +423,22 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (data.success) {
+        // Optimistically update the UI
+        setBoard(prevBoard => {
+          if (!prevBoard) return null;
+          
+          return {
+            ...prevBoard,
+            columns: prevBoard.columns.map(col => {
+              return {
+                ...col,
+                tasks: col.tasks.filter(task => task.id !== taskId)
+              };
+            })
+          };
+        });
+      } else {
         toast.error(data.message || 'Failed to delete task');
       }
     } catch (error) {
@@ -391,7 +458,22 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (data.success) {
+        // Optimistically update the UI
+        setBoard(prevBoard => {
+          if (!prevBoard) return null;
+          
+          return {
+            ...prevBoard,
+            columns: prevBoard.columns.map(col => {
+              if (col.id === columnId) {
+                return { ...col, title };
+              }
+              return col;
+            })
+          };
+        });
+      } else {
         toast.error(data.message || 'Failed to update column');
       }
     } catch (error) {
@@ -409,7 +491,17 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (data.success) {
+        // Optimistically update the UI
+        setBoard(prevBoard => {
+          if (!prevBoard) return null;
+          
+          return {
+            ...prevBoard,
+            columns: prevBoard.columns.filter(col => col.id !== columnId)
+          };
+        });
+      } else {
         toast.error(data.message || 'Failed to delete column');
       }
     } catch (error) {
@@ -421,6 +513,112 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
   // Move a task between columns
   const moveTask = async (taskId: string, sourceColumnId: string, destinationColumnId: string, newOrder: number) => {
     try {
+      console.log("Moving task:", { taskId, sourceColumnId, destinationColumnId, newOrder });
+      
+      // Find the task that's being moved
+      let taskToMove: Task | null = null;
+      let sourceColumn: Column | null = null;
+      let destinationColumn: Column | null = null;
+      
+      if (board) {
+        sourceColumn = board.columns.find(col => col.id === sourceColumnId) || null;
+        destinationColumn = board.columns.find(col => col.id === destinationColumnId) || null;
+        
+        if (sourceColumn) {
+          taskToMove = sourceColumn.tasks.find(task => task.id === taskId) || null;
+        }
+      }
+      
+      if (!taskToMove) {
+        console.error("Task not found:", taskId);
+        return;
+      }
+      
+      // Check if moving within the same column or to a different column
+      const isSameColumn = sourceColumnId === destinationColumnId;
+      
+      // Optimistically update the UI
+      setBoard(prevBoard => {
+        if (!prevBoard) return null;
+        
+        // Clone the board for immutability
+        const newBoard = { ...prevBoard };
+        
+        if (isSameColumn) {
+          // Same column - just update the order
+          const columnIndex = newBoard.columns.findIndex(col => col.id === sourceColumnId);
+          if (columnIndex === -1) return prevBoard;
+          
+          // Get the tasks and reorder them
+          const tasks = [...newBoard.columns[columnIndex].tasks];
+          const taskIndex = tasks.findIndex(t => t.id === taskId);
+          if (taskIndex === -1) return prevBoard;
+          
+          // Remove the task from its current position
+          const [removed] = tasks.splice(taskIndex, 1);
+          
+          // Get the new position
+          const insertPosition = Math.min(tasks.length, newOrder);
+          
+          // Add the task at the new position
+          tasks.splice(insertPosition, 0, {
+            ...removed,
+            order: newOrder
+          });
+          
+          // Update tasks with new order values
+          const updatedTasks = tasks.map((task, index) => ({
+            ...task,
+            order: index
+          }));
+          
+          // Update the column
+          newBoard.columns[columnIndex].tasks = updatedTasks;
+        } else {
+          // Different columns
+          const sourceColumnIndex = newBoard.columns.findIndex(col => col.id === sourceColumnId);
+          const destColumnIndex = newBoard.columns.findIndex(col => col.id === destinationColumnId);
+          
+          if (sourceColumnIndex === -1 || destColumnIndex === -1) return prevBoard;
+          
+          // Remove task from source column
+          const sourceTasks = [...newBoard.columns[sourceColumnIndex].tasks];
+          const taskIndex = sourceTasks.findIndex(t => t.id === taskId);
+          if (taskIndex === -1) return prevBoard;
+          
+          const [removed] = sourceTasks.splice(taskIndex, 1);
+          
+          // Update source column tasks with new order values
+          const updatedSourceTasks = sourceTasks.map((task, index) => ({
+            ...task,
+            order: index
+          }));
+          
+          // Add task to destination column
+          const destTasks = [...newBoard.columns[destColumnIndex].tasks];
+          const insertPosition = Math.min(destTasks.length, newOrder);
+          
+          destTasks.splice(insertPosition, 0, {
+            ...removed,
+            column: destinationColumnId,
+            order: newOrder
+          });
+          
+          // Update destination column tasks with new order values
+          const updatedDestTasks = destTasks.map((task, index) => ({
+            ...task,
+            order: index
+          }));
+          
+          // Update both columns
+          newBoard.columns[sourceColumnIndex].tasks = updatedSourceTasks;
+          newBoard.columns[destColumnIndex].tasks = updatedDestTasks;
+        }
+        
+        return newBoard;
+      });
+      
+      // Send API request
       const response = await fetch(`/api/task/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -434,6 +632,7 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (!data.success) {
         toast.error(data.message || 'Failed to move task');
+        // Could revert the optimistic update here if needed
       }
     } catch (error) {
       console.error('Failed to move task:', error);

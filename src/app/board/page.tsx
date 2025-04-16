@@ -72,6 +72,7 @@ const BoardContent = () => {
   const [columnModalData, setColumnModalData] = useState({ columnId: '', title: '', isEditing: false });
   const [boardModalOpen, setBoardModalOpen] = useState(false);
   const [boardModalData, setBoardModalData] = useState({ title: '', isEditing: false });
+  const [hasCheckedInitialBoard, setHasCheckedInitialBoard] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -90,14 +91,28 @@ const BoardContent = () => {
 
   // If no board exists, show the create board modal
   useEffect(() => {
-    if (!isLoading && !board && user) {
-      setBoardModalOpen(true);
+    // Only check once after initial loading is complete
+    if (!isLoading && !hasCheckedInitialBoard) {
+      setHasCheckedInitialBoard(true);
+      
+      // Only show the modal if there's no board and we're not already showing it
+      if (!board && user && !boardModalOpen) {
+        // Check localStorage to see if we've interacted with a board already
+        const hasInteractedWithBoard = localStorage.getItem('kanban_has_board');
+        
+        // Only show the modal if the user has never interacted with a board
+        if (!hasInteractedWithBoard) {
+          setBoardModalOpen(true);
+        }
+      }
     }
-  }, [isLoading, board, user]);
+  }, [isLoading, board, user, boardModalOpen, hasCheckedInitialBoard]);
 
   // Handle board creation/update
   const handleBoardSubmit = (title: string) => {
     createBoard(title);
+    // Mark that the user has interacted with a board
+    localStorage.setItem('kanban_has_board', 'true');
   };
 
   // Handle column creation/update
@@ -143,6 +158,16 @@ const BoardContent = () => {
         break;
       }
     }
+  };
+
+  // Log and handle task deletion
+  const handleDeleteTask = (taskId: string) => {
+    console.log("Deleting task with ID:", taskId);
+    if (!taskId) {
+      console.error("Task ID is undefined or null");
+      return;
+    }
+    deleteTask(taskId);
   };
 
   // Handle drag start event
@@ -227,40 +252,70 @@ const BoardContent = () => {
     setActiveTaskId(null);
     setActiveColumnId(null);
     
-    if (!over) return;
+    if (!over || !board) return;
     
     const isActiveTask = active.data.current?.type === 'task';
     
     if (isActiveTask) {
       const activeTaskId = active.id as string;
       const isOverTask = over.data.current?.type === 'task';
+      const isOverColumn = over.data.current?.type === 'column';
+      
+      // Find the active task and its column
+      let activeTask: Task | undefined;
+      let sourceColumn: ColumnType | undefined;
+      
+      for (const column of board.columns) {
+        const task = column.tasks.find(t => t.id === activeTaskId);
+        if (task) {
+          activeTask = task;
+          sourceColumn = column;
+          break;
+        }
+      }
+      
+      if (!activeTask || !sourceColumn) return;
       
       if (isOverTask && active.id !== over.id) {
-        // Task dropped over another task in the same column
+        // Task dropped over another task (possibly in the same column)
         const overTaskId = over.id as string;
         
-        // Find both tasks and their columns
-        let sourceColumn: ColumnType | undefined;
-        let sourceTask: Task | undefined;
+        // Find the destination task and its column
         let overTask: Task | undefined;
+        let destinationColumn: ColumnType | undefined;
         
-        board?.columns.forEach(column => {
-          column.tasks.forEach(task => {
-            if (task.id === activeTaskId) {
-              sourceColumn = column;
-              sourceTask = task;
-            }
-            if (task.id === overTaskId) {
-              overTask = task;
-            }
-          });
-        });
+        for (const column of board.columns) {
+          const task = column.tasks.find(t => t.id === overTaskId);
+          if (task) {
+            overTask = task;
+            destinationColumn = column;
+            break;
+          }
+        }
         
-        if (sourceColumn && sourceTask && overTask && 
-            sourceTask.column === overTask.column && 
-            sourceTask.order !== overTask.order) {
-          // If in same column, update order
-          updateTask(activeTaskId, { order: overTask.order });
+        if (!overTask || !destinationColumn) return;
+        
+        // If in same column, update order
+        if (sourceColumn.id === destinationColumn.id) {
+          console.log(`Reordering task ${activeTaskId} to position ${overTask.order} in column ${sourceColumn.id}`);
+          moveTask(activeTaskId, sourceColumn.id, destinationColumn.id, overTask.order);
+        } else {
+          // If moving to another column
+          console.log(`Moving task ${activeTaskId} from column ${sourceColumn.id} to column ${destinationColumn.id} at position ${overTask.order}`);
+          moveTask(activeTaskId, sourceColumn.id, destinationColumn.id, overTask.order);
+        }
+      } else if (isOverColumn) {
+        // Task dropped directly on a column
+        const overColumnId = over.id as string;
+        
+        // If the task is dropped on a different column, move it to the end of that column
+        if (sourceColumn.id !== overColumnId) {
+          const destinationColumn = board.columns.find(c => c.id === overColumnId);
+          if (destinationColumn) {
+            const newOrder = destinationColumn.tasks.length;
+            console.log(`Moving task ${activeTaskId} to end of column ${overColumnId} at position ${newOrder}`);
+            moveTask(activeTaskId, sourceColumn.id, overColumnId, newOrder);
+          }
         }
       }
     }
@@ -316,7 +371,7 @@ const BoardContent = () => {
                     }}
                     onDeleteColumn={deleteColumn}
                     onEditTask={handleEditTask}
-                    onDeleteTask={deleteTask}
+                    onDeleteTask={handleDeleteTask}
                   />
                 ))}
               </SortableContext>
