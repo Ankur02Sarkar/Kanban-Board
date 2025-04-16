@@ -46,12 +46,14 @@ export default function Column({
     setNodeRef, 
     transform, 
     transition,
-    isDragging 
+    isDragging,
+    active
   } = useSortable({ 
     id,
     data: {
       type: 'column',
       id,
+      title,
     }
   });
 
@@ -59,6 +61,7 @@ export default function Column({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 'auto',
   };
 
   const handleTitleSubmit = (e: React.FormEvent) => {
@@ -95,7 +98,7 @@ export default function Column({
     <div
       ref={setNodeRef}
       style={style}
-      className="w-72 flex-shrink-0 bg-gray-100 rounded-md shadow-sm flex flex-col"
+      className={`w-72 flex-shrink-0 bg-gray-100 rounded-md shadow-sm flex flex-col ${isDragging ? 'ring-2 ring-blue-500' : ''}`}
       data-column-id={id}
     >
       <div className="p-3 bg-white rounded-t-md shadow-sm flex items-center justify-between" {...attributes} {...listeners}>

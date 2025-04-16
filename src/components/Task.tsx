@@ -46,20 +46,24 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     setNodeRef, 
     transform, 
     transition,
-    isDragging 
+    isDragging,
+    active
   } = useSortable({ 
     id,
     data: {
       type: 'task',
       id,
+      title,
+      description
     }
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.3 : 1,
     zIndex: isDragging ? 100 : 'auto',
+    position: 'relative' as const,
   };
 
   const handleMenuToggle = (e: React.MouseEvent) => {
@@ -90,7 +94,7 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white p-3 mb-2 rounded-md shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
+      className={`bg-white p-3 mb-2 rounded-md shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200 ${isDragging ? 'ring-2 ring-blue-500' : ''}`}
       {...attributes}
       {...listeners}
       data-task-id={id}

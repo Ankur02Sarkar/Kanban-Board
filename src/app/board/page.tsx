@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { BoardProvider, useBoard } from '@/lib/context/BoardContext';
 import NavBar from '@/components/NavBar';
 import Column from '@/components/Column';
+import Task from '@/components/Task';
 import TaskModal from '@/components/modals/TaskModal';
 import ColumnModal from '@/components/modals/ColumnModal';
 import BoardModal from '@/components/modals/BoardModal';
@@ -21,6 +22,8 @@ import {
   MeasuringStrategy,
   KeyboardSensor,
   defaultDropAnimationSideEffects,
+  DragOverlay,
+  UniqueIdentifier
 } from '@dnd-kit/core';
 import { 
   SortableContext, 
@@ -29,6 +32,10 @@ import {
   arrayMove,
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable';
+import {
+  restrictToParentElement,
+  restrictToWindowEdges
+} from '@dnd-kit/modifiers';
 
 // Import interfaces for the Board context
 interface Task {
@@ -372,6 +379,7 @@ const BoardContent = () => {
                 strategy: MeasuringStrategy.Always
               },
             }}
+            modifiers={[restrictToWindowEdges]}
           >
             <div className="flex space-x-4 min-h-[calc(100vh-10rem)]">
               <SortableContext 
@@ -394,6 +402,38 @@ const BoardContent = () => {
                   />
                 ))}
               </SortableContext>
+              
+              {/* Add DragOverlay for improved visual feedback */}
+              <DragOverlay adjustScale={true} dropAnimation={{
+                duration: 250,
+                easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+                sideEffects: defaultDropAnimationSideEffects({
+                  styles: {
+                    active: {
+                      opacity: '0.5',
+                    },
+                  },
+                }),
+              }}>
+                {activeTaskId && board.columns.flatMap(col => col.tasks).find(task => task.id === activeTaskId) && (
+                  <Task
+                    id={activeTaskId}
+                    title={board.columns.flatMap(col => col.tasks).find(task => task.id === activeTaskId)?.title || ''}
+                    description={board.columns.flatMap(col => col.tasks).find(task => task.id === activeTaskId)?.description || ''}
+                    onEdit={() => {}}
+                    onDelete={() => {}}
+                  />
+                )}
+                {activeColumnId && board.columns.find(col => col.id === activeColumnId) && (
+                  <div className="opacity-70 w-72 h-[300px] bg-gray-100 rounded-md shadow-md border-2 border-blue-400">
+                    <div className="p-3 bg-white rounded-t-md shadow-sm">
+                      <h3 className="text-sm font-medium text-gray-800">
+                        {board.columns.find(col => col.id === activeColumnId)?.title || ''}
+                      </h3>
+                    </div>
+                  </div>
+                )}
+              </DragOverlay>
               
               {board.columns.length === 0 && (
                 <div className="flex items-center justify-center w-full">
