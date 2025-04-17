@@ -43,8 +43,8 @@ export default function Home() {
     <div className="flex flex-col min-h-screen gradient-background overflow-hidden relative">
       <NavBar />
       
-      <main className="flex-1 relative z-10">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 relative z-10 flex">
+        <div className="max-w-7xl m-auto py-16 px-4 sm:px-6 lg:px-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -192,7 +192,7 @@ export default function Home() {
             transition={{ delay: 1.5 }}
             className="text-center text-gray-600 text-sm"
           >
-            © {new Date().getFullYear()} Kanban Board Application. All rights reserved.
+            © {new Date().getFullYear()} Ankur Sarkar. All rights reserved.
           </motion.p>
         </div>
       </footer>
