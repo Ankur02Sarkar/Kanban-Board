@@ -64,8 +64,8 @@ src/
 ## Tech Stack
 
 ### Frontend
-- **Next.js 15** - React framework with App Router
-- **React 19** - UI library
+- **Next.js 15** - ReactJS framework with App Router
+- **React 19** - JavaScript library for building user interfaces
 - **TypeScript** - Type-safe code
 - **Tailwind CSS 4** - Utility-first CSS framework
 - **Framer Motion** - Animation library
