@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -38,78 +39,127 @@ export default function TaskModal({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-        <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg sm:align-middle relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">
-              {isEditing ? 'Edit Task' : 'Add New Task'}
-            </h3>
-            <button
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+          >
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 transition-opacity" 
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 focus:outline-none"
+              aria-hidden="true"
             >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+              <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+            </motion.div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label htmlFor="task-title" className="block text-sm font-medium text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                id="task-title"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Task title"
-                value={taskTitle}
-                onChange={(e) => setTaskTitle(e.target.value)}
-                required
-              />
-            </div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div className="mb-6">
-              <label htmlFor="task-description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description (optional)
-              </label>
-              <textarea
-                id="task-description"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Add a description"
-                rows={3}
-                value={taskDescription}
-                onChange={(e) => setTaskDescription(e.target.value)}
-              ></textarea>
-            </div>
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", stiffness: 400, damping: 30 }}
+              className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle glass card-shadow rounded-xl sm:align-middle relative z-10"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <motion.h3 
+                  initial={{ x: -10, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-lg font-semibold leading-6 text-gray-900"
+                >
+                  {isEditing ? 'Edit Task' : 'Add New Task'}
+                </motion.h3>
+                <motion.button
+                  whileHover={{ rotate: 90, scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={onClose}
+                  className="p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100/60 focus:outline-none transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </motion.button>
+              </div>
 
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md border border-gray-300"
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md"
-              >
-                {isEditing ? 'Save Changes' : 'Add Task'}
-              </button>
-            </div>
-          </form>
+              <form onSubmit={handleSubmit}>
+                <motion.div 
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="mb-5"
+                >
+                  <label htmlFor="task-title" className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    id="task-title"
+                    className="w-full px-4 py-2.5 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Enter task title"
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    required
+                  />
+                </motion.div>
+
+                <motion.div 
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mb-6"
+                >
+                  <label htmlFor="task-description" className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Description (optional)
+                  </label>
+                  <textarea
+                    id="task-description"
+                    className="w-full px-4 py-2.5 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Add details about this task"
+                    rows={3}
+                    value={taskDescription}
+                    onChange={(e) => setTaskDescription(e.target.value)}
+                  ></textarea>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex justify-end"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="button"
+                    className="mr-3 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/60 hover:bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-lg border border-gray-200"
+                    onClick={onClose}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="submit"
+                    className="px-4 py-2.5 text-sm font-medium text-white gradient-primary rounded-lg button-shadow hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-opacity"
+                  >
+                    {isEditing ? 'Save Changes' : 'Add Task'}
+                  </motion.button>
+                </motion.div>
+              </form>
+            </motion.div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 } 

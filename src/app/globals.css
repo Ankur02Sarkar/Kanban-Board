@@ -120,3 +120,42 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add glass morphism and gradient utilities */
+@layer utilities {
+  .glass {
+    @apply bg-white/25 backdrop-blur-md border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-black/25 backdrop-blur-md border border-white/10;
+  }
+  
+  .gradient-primary {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-500;
+  }
+  
+  .gradient-secondary {
+    @apply bg-gradient-to-r from-purple-600 to-pink-500;
+  }
+  
+  .gradient-success {
+    @apply bg-gradient-to-r from-emerald-500 to-teal-400;
+  }
+  
+  .gradient-background {
+    @apply bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200;
+  }
+  
+  .gradient-background-dark {
+    @apply bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800;
+  }
+  
+  .card-shadow {
+    @apply shadow-lg shadow-blue-900/5;
+  }
+  
+  .button-shadow {
+    @apply shadow-md shadow-blue-500/20;
+  }
+}

@@ -37,6 +37,7 @@ import {
   restrictToWindowEdges,
   snapCenterToCursor
 } from '@dnd-kit/modifiers';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Import interfaces for the Board context
 interface Task {
@@ -347,17 +348,27 @@ const BoardContent = () => {
 
   if (authLoading || isLoading) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen gradient-background">
         <NavBar />
         <div className="flex items-center justify-center flex-1">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <motion.div 
+            animate={{ 
+              rotate: 360,
+              scale: [1, 1.1, 1]
+            }}
+            transition={{ 
+              rotate: { duration: 1.5, repeat: Infinity, ease: "linear" },
+              scale: { duration: 1, repeat: Infinity, repeatType: "reverse" }
+            }}
+            className="h-16 w-16 rounded-full border-t-4 border-b-4 border-indigo-600"
+          ></motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen gradient-background">
       <NavBar 
         showBoardOptions={!!board}
         boardTitle={board?.title}
@@ -370,7 +381,7 @@ const BoardContent = () => {
         }}
       />
       
-      <main className="flex-1 overflow-x-auto py-6 px-4">
+      <main className="flex-1 overflow-x-auto py-8 px-6">
         {board ? (
           <DndContext
             sensors={sensors}
@@ -385,26 +396,33 @@ const BoardContent = () => {
             }}
             modifiers={[restrictToWindowEdges, snapCenterToCursor]}
           >
-            <div className="flex space-x-4 min-h-[calc(100vh-10rem)]">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex space-x-6 min-h-[calc(100vh-10rem)] pb-10"
+            >
               <SortableContext 
                 items={board.columns.map(col => col.id)} 
                 strategy={horizontalListSortingStrategy}
               >
-                {board.columns.map((column) => (
-                  <Column
-                    key={column.id}
-                    id={column.id}
-                    title={column.title}
-                    tasks={column.tasks}
-                    onAddTask={handleAddTask}
-                    onEditColumn={(columnId, title) => {
-                      updateColumn(columnId, title);
-                    }}
-                    onDeleteColumn={deleteColumn}
-                    onEditTask={handleEditTask}
-                    onDeleteTask={handleDeleteTask}
-                  />
-                ))}
+                <AnimatePresence>
+                  {board.columns.map((column) => (
+                    <Column
+                      key={column.id}
+                      id={column.id}
+                      title={column.title}
+                      tasks={column.tasks}
+                      onAddTask={handleAddTask}
+                      onEditColumn={(columnId, title) => {
+                        updateColumn(columnId, title);
+                      }}
+                      onDeleteColumn={deleteColumn}
+                      onEditTask={handleEditTask}
+                      onDeleteTask={handleDeleteTask}
+                    />
+                  ))}
+                </AnimatePresence>
               </SortableContext>
               
               {/* Add DragOverlay for improved visual feedback */}
@@ -435,9 +453,9 @@ const BoardContent = () => {
                   </div>
                 )}
                 {activeColumnId && board.columns.find(col => (col.id === activeColumnId || col._id === activeColumnId)) && (
-                  <div className="opacity-70 w-72 h-[300px] bg-gray-100 rounded-md shadow-md border-2 border-blue-400">
-                    <div className="p-3 bg-white rounded-t-md shadow-sm">
-                      <h3 className="text-sm font-medium text-gray-800">
+                  <div className="opacity-70 w-72 glass card-shadow rounded-xl border-2 border-indigo-400">
+                    <div className="p-3 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-t-xl shadow-sm">
+                      <h3 className="text-sm font-medium text-indigo-900">
                         {board.columns.find(col => (col.id === activeColumnId || col._id === activeColumnId))?.title || ''}
                       </h3>
                     </div>
@@ -446,30 +464,74 @@ const BoardContent = () => {
               </DragOverlay>
               
               {board.columns.length === 0 && (
-                <div className="flex items-center justify-center w-full">
-                  <button
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex items-center justify-center w-full"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setColumnModalOpen(true)}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md"
+                    className="px-6 py-3 text-sm font-medium text-white gradient-primary rounded-lg button-shadow hover:opacity-90 focus:outline-none transition-all duration-200"
                   >
                     Add Your First Column
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           </DndContext>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">No Board Yet</h2>
-              <button
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center justify-center h-full"
+          >
+            <div className="text-center glass card-shadow p-10 rounded-2xl">
+              <motion.h2 
+                initial={{ y: -10 }}
+                animate={{ y: 0 }}
+                className="text-2xl font-bold text-gray-800 mb-6"
+              >
+                No Board Yet
+              </motion.h2>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setBoardModalOpen(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md"
+                className="px-6 py-3 text-sm font-medium text-white gradient-primary rounded-lg button-shadow hover:opacity-90 focus:outline-none transition-all duration-200"
               >
                 Create a Board
-              </button>
+              </motion.button>
+              
+              {/* Decorative elements */}
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: '50%' }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="h-1 mt-8 mx-auto rounded-full bg-gradient-to-r from-indigo-500/40 via-purple-500/40 to-pink-500/40"
+              />
             </div>
-          </div>
+          </motion.div>
         )}
+        
+        {/* Background decorative elements */}
+        <div className="fixed -z-10 inset-0 overflow-hidden pointer-events-none">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            transition={{ duration: 1.5 }}
+            className="absolute top-40 right-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-600/10 to-blue-500/10 blur-3xl"
+          />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            transition={{ duration: 1.5, delay: 0.3 }}
+            className="absolute bottom-40 left-10 w-96 h-96 rounded-full bg-gradient-to-tr from-purple-500/10 to-pink-500/10 blur-3xl"
+          />
+        </div>
       </main>
       
       {/* Task Modal */}
