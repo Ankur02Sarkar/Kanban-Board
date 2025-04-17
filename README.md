@@ -169,7 +169,7 @@ src/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/kanban-board.git
+   git clone https://github.com/Ankur02Sarkar/kanban-board.git
    cd kanban-board
    ```
 
