@@ -4,7 +4,39 @@ A modern, responsive Kanban board application with real-time updates, drag-and-d
 
 **Live Demo:** [https://kanbanboard-pixeltech.vercel.app/](https://kanbanboard-pixeltech.vercel.app/)
 
-![Kanban Board Screenshot](https://example.com/screenshot.png)
+
+## File Structure
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/                # API Routes
+│   │   ├── auth/           # Authentication endpoints
+│   │   ├── board/          # Board management
+│   │   ├── column/         # Column management
+│   │   ├── task/           # Task management
+│   │   └── socket/         # WebSocket endpoint
+│   ├── board/              # Board page
+│   ├── login/              # Login page
+│   ├── signup/             # Signup page
+│   ├── page.tsx            # Landing page
+│   ├── layout.tsx          # Root layout
+│   └── globals.css         # Global styles
+├── components/             # React components
+│   ├── modals/             # Modal components
+│   │   ├── BoardModal.tsx  # Board creation/editing
+│   │   ├── ColumnModal.tsx # Column creation/editing
+│   │   └── TaskModal.tsx   # Task creation/editing
+│   ├── Column.tsx          # Column component
+│   ├── Task.tsx            # Task component
+│   └── NavBar.tsx          # Navigation bar
+└── lib/                    # Utility functions & modules
+    ├── auth/               # Authentication utilities
+    ├── context/            # React context providers
+    ├── models/             # Mongoose models
+    ├── socket/             # Socket.IO configuration
+    └── utils/              # Helper functions
+```
 
 ## Features
 
@@ -51,39 +83,6 @@ A modern, responsive Kanban board application with real-time updates, drag-and-d
 
 ### Deployment
 - **Vercel** - Hosting platform
-
-## File Structure
-
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── api/                # API Routes
-│   │   ├── auth/           # Authentication endpoints
-│   │   ├── board/          # Board management
-│   │   ├── column/         # Column management
-│   │   ├── task/           # Task management
-│   │   └── socket/         # WebSocket endpoint
-│   ├── board/              # Board page
-│   ├── login/              # Login page
-│   ├── signup/             # Signup page
-│   ├── page.tsx            # Landing page
-│   ├── layout.tsx          # Root layout
-│   └── globals.css         # Global styles
-├── components/             # React components
-│   ├── modals/             # Modal components
-│   │   ├── BoardModal.tsx  # Board creation/editing
-│   │   ├── ColumnModal.tsx # Column creation/editing
-│   │   └── TaskModal.tsx   # Task creation/editing
-│   ├── Column.tsx          # Column component
-│   ├── Task.tsx            # Task component
-│   └── NavBar.tsx          # Navigation bar
-└── lib/                    # Utility functions & modules
-    ├── auth/               # Authentication utilities
-    ├── context/            # React context providers
-    ├── models/             # Mongoose models
-    ├── socket/             # Socket.IO configuration
-    └── utils/              # Helper functions
-```
 
 ## API Documentation
 
