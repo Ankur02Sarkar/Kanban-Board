@@ -40,6 +40,7 @@ import {
 // Import interfaces for the Board context
 interface Task {
   id: string;
+  _id?: string;
   title: string;
   description?: string;
   column: string;
@@ -48,6 +49,7 @@ interface Task {
 
 interface ColumnType {
   id: string;
+  _id?: string;
   title: string;
   order: number;
   tasks: Task[];
@@ -94,7 +96,8 @@ const BoardContent = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        delay: 100,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -165,10 +168,10 @@ const BoardContent = () => {
     
     // Find the task in columns
     for (const column of board.columns) {
-      const task = column.tasks.find(t => t.id === taskId);
+      const task = column.tasks.find(t => t.id === taskId || t._id === taskId);
       if (task) {
         setTaskModalData({
-          columnId: column.id,
+          columnId: column.id || column._id || '',
           taskId,
           title: task.title,
           description: task.description || '',
@@ -222,12 +225,12 @@ const BoardContent = () => {
       
       // Find the current column of the task
       const sourceColumnId = board?.columns.find(column => 
-        column.tasks.some(task => task.id === activeTaskId)
+        column.tasks.some(task => task.id === activeTaskId || task._id === activeTaskId)
       )?.id;
       
       if (sourceColumnId && sourceColumnId !== overColumnId) {
         // Get the highest order in the target column
-        const targetColumn = board?.columns.find(column => column.id === overColumnId);
+        const targetColumn = board?.columns.find(column => column.id === overColumnId || column._id === overColumnId);
         const newOrder = targetColumn?.tasks.length || 0;
         
         moveTask(activeTaskId, sourceColumnId, overColumnId, newOrder);
@@ -245,11 +248,11 @@ const BoardContent = () => {
       
       board?.columns.forEach(column => {
         column.tasks.forEach(task => {
-          if (task.id === activeTaskId) {
+          if (task.id === activeTaskId || task._id === activeTaskId) {
             sourceColumn = column;
             sourceTask = task;
           }
-          if (task.id === overTaskId) {
+          if (task.id === overTaskId || task._id === overTaskId) {
             targetColumn = column;
             targetTask = task;
           }
@@ -286,7 +289,7 @@ const BoardContent = () => {
       let sourceColumn: ColumnType | undefined;
       
       for (const column of board.columns) {
-        const task = column.tasks.find(t => t.id === activeTaskId);
+        const task = column.tasks.find(t => t.id === activeTaskId || t._id === activeTaskId);
         if (task) {
           activeTask = task;
           sourceColumn = column;
@@ -305,7 +308,7 @@ const BoardContent = () => {
         let destinationColumn: ColumnType | undefined;
         
         for (const column of board.columns) {
-          const task = column.tasks.find(t => t.id === overTaskId);
+          const task = column.tasks.find(t => t.id === overTaskId || t._id === overTaskId);
           if (task) {
             overTask = task;
             destinationColumn = column;
@@ -330,7 +333,7 @@ const BoardContent = () => {
         
         // If the task is dropped on a different column, move it to the end of that column
         if (sourceColumn.id !== overColumnId) {
-          const destinationColumn = board.columns.find(c => c.id === overColumnId);
+          const destinationColumn = board.columns.find(c => c.id === overColumnId || c._id === overColumnId);
           if (destinationColumn) {
             const newOrder = destinationColumn.tasks.length;
             console.log(`Moving task ${activeTaskId} to end of column ${overColumnId} at position ${newOrder}`);
@@ -415,20 +418,20 @@ const BoardContent = () => {
                   },
                 }),
               }}>
-                {activeTaskId && board.columns.flatMap(col => col.tasks).find(task => task.id === activeTaskId) && (
+                {activeTaskId && board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId)) && (
                   <Task
                     id={activeTaskId}
-                    title={board.columns.flatMap(col => col.tasks).find(task => task.id === activeTaskId)?.title || ''}
-                    description={board.columns.flatMap(col => col.tasks).find(task => task.id === activeTaskId)?.description || ''}
+                    title={board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId))?.title || ''}
+                    description={board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId))?.description || ''}
                     onEdit={() => {}}
                     onDelete={() => {}}
                   />
                 )}
-                {activeColumnId && board.columns.find(col => col.id === activeColumnId) && (
+                {activeColumnId && board.columns.find(col => (col.id === activeColumnId || col._id === activeColumnId)) && (
                   <div className="opacity-70 w-72 h-[300px] bg-gray-100 rounded-md shadow-md border-2 border-blue-400">
                     <div className="p-3 bg-white rounded-t-md shadow-sm">
                       <h3 className="text-sm font-medium text-gray-800">
-                        {board.columns.find(col => col.id === activeColumnId)?.title || ''}
+                        {board.columns.find(col => (col.id === activeColumnId || col._id === activeColumnId))?.title || ''}
                       </h3>
                     </div>
                   </div>

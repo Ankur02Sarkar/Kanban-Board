@@ -1,14 +1,18 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Edit, MoreVertical, Plus, Trash2 } from 'lucide-react';
-import Task from './Task';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import React, { useEffect, useState } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Edit, MoreVertical, Plus, Trash2 } from "lucide-react";
+import Task from "./Task";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface TaskType {
   id: string;
+  _id?: string;
   title: string;
   description?: string;
   column: string;
@@ -17,6 +21,7 @@ interface TaskType {
 
 interface ColumnProps {
   id: string;
+  _id?: string;
   title: string;
   tasks: TaskType[];
   onAddTask: (columnId: string) => void;
@@ -34,40 +39,42 @@ export default function Column({
   onEditColumn,
   onDeleteColumn,
   onEditTask,
-  onDeleteTask
+  onDeleteTask,
 }: ColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
   const [showMenu, setShowMenu] = useState(false);
 
-  const { 
-    attributes, 
-    listeners, 
-    setNodeRef, 
-    transform, 
+  const columnId = id;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
     transition,
     isDragging,
-    active
-  } = useSortable({ 
-    id,
+    active,
+  } = useSortable({
+    id: columnId,
     data: {
-      type: 'column',
-      id,
+      type: "column",
+      id: columnId,
       title,
-    }
+    },
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 1000 : 'auto',
+    zIndex: isDragging ? 1000 : "auto",
+    touchAction: "none",
   };
 
   const handleTitleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newTitle.trim() !== '' && newTitle !== title) {
-      onEditColumn(id, newTitle);
+    if (newTitle.trim() !== "" && newTitle !== title) {
+      onEditColumn(columnId, newTitle);
     } else {
       setNewTitle(title);
     }
@@ -85,23 +92,33 @@ export default function Column({
   };
 
   const handleDelete = () => {
-    onDeleteColumn(id);
+    onDeleteColumn(columnId);
     setShowMenu(false);
   };
 
   // Sort tasks by order
   const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
   // Get task IDs for SortableContext
-  const taskIds = sortedTasks.map(task => task.id);
+  const taskIds = sortedTasks.map((task) => task._id || task.id);
+
+  useEffect(() => {
+    console.log("sortedTasks : ", sortedTasks);
+  }, [sortedTasks]);
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`w-72 flex-shrink-0 bg-gray-100 rounded-md shadow-sm flex flex-col ${isDragging ? 'ring-2 ring-blue-500' : ''}`}
-      data-column-id={id}
+      className={`w-72 flex-shrink-0 bg-gray-100 rounded-md shadow-sm flex flex-col ${
+        isDragging ? "ring-2 ring-blue-500 bg-blue-50" : ""
+      }`}
+      data-column-id={columnId}
     >
-      <div className="p-3 bg-white rounded-t-md shadow-sm flex items-center justify-between" {...attributes} {...listeners}>
+      <div
+        className="p-3 bg-white rounded-t-md shadow-sm flex items-center justify-between"
+        {...attributes}
+        {...listeners}
+      >
         {isEditing ? (
           <form onSubmit={handleTitleSubmit} className="w-full">
             <input
@@ -116,7 +133,7 @@ export default function Column({
         ) : (
           <h3 className="text-sm font-medium text-gray-800">{title}</h3>
         )}
-        
+
         <div className="relative">
           <button
             onClick={handleMenuToggle}
@@ -124,7 +141,7 @@ export default function Column({
           >
             <MoreVertical className="h-4 w-4" />
           </button>
-          
+
           {showMenu && (
             <div className="absolute right-0 mt-1 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
               <div className="py-1" role="menu" aria-orientation="vertical">
@@ -149,25 +166,25 @@ export default function Column({
           )}
         </div>
       </div>
-      
+
       <div className="flex-1 p-2 overflow-y-auto max-h-[calc(100vh-12rem)]">
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {sortedTasks.map((task) => (
             <Task
-              key={task.id}
-              id={task.id}
+              key={task._id || task.id}
+              id={task._id || task.id}
               title={task.title}
               description={task.description}
-              onEdit={() => onEditTask(task.id)}
-              onDelete={() => onDeleteTask(task.id)}
+              onEdit={() => onEditTask(task._id || task.id)}
+              onDelete={() => onDeleteTask(task._id || task.id)}
             />
           ))}
         </SortableContext>
       </div>
-      
+
       <div className="p-2 bg-white rounded-b-md">
         <button
-          onClick={() => onAddTask(id)}
+          onClick={() => onAddTask(columnId)}
           className="w-full flex items-center justify-center p-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-md"
         >
           <Plus className="h-4 w-4 mr-1" />
@@ -176,4 +193,4 @@ export default function Column({
       </div>
     </div>
   );
-} 
+}

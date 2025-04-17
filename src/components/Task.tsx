@@ -17,11 +17,14 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Use MongoDB _id or fallback to id
+  const taskId = id;
+
   // Debug log when component mounts
   useEffect(() => {
-    console.log("Task component mounted with ID:", id);
-    return () => console.log("Task component unmounted with ID:", id);
-  }, [id]);
+    console.log("Task component mounted with ID:", taskId);
+    return () => console.log("Task component unmounted with ID:", taskId);
+  }, [taskId]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -49,10 +52,10 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     isDragging,
     active
   } = useSortable({ 
-    id,
+    id: taskId,
     data: {
       type: 'task',
-      id,
+      id: taskId,
       title,
       description
     }
@@ -61,9 +64,9 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : 1,
     zIndex: isDragging ? 100 : 'auto',
     position: 'relative' as const,
+    touchAction: 'none',
   };
 
   const handleMenuToggle = (e: React.MouseEvent) => {
@@ -73,16 +76,16 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log("Editing task with ID:", id);
+    console.log("Editing task with ID:", taskId);
     onEdit();
     setShowMenu(false);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log("Deleting task with ID:", id);
+    console.log("Deleting task with ID:", taskId);
     // Make sure we don't call onDelete with undefined
-    if (id) {
+    if (taskId) {
       onDelete();
     } else {
       console.error("Cannot delete task with undefined ID");
@@ -94,10 +97,10 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white p-3 mb-2 rounded-md shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200 ${isDragging ? 'ring-2 ring-blue-500' : ''}`}
+      className={`bg-white p-3 mb-2 rounded-md shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200 ${isDragging ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
       {...attributes}
       {...listeners}
-      data-task-id={id}
+      data-task-id={taskId}
     >
       <div className="flex items-start justify-between">
         <div className="w-full overflow-hidden">

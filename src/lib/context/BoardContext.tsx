@@ -7,6 +7,7 @@ import { socketInit, joinBoard, leaveBoard, onTaskCreated, onTaskUpdated, onTask
 
 interface Task {
   id: string;
+  _id?: string;
   title: string;
   description?: string;
   column: string;
@@ -15,6 +16,7 @@ interface Task {
 
 interface Column {
   id: string;
+  _id?: string;
   title: string;
   order: number;
   tasks: Task[];
@@ -22,6 +24,7 @@ interface Column {
 
 interface Board {
   id: string;
+  _id?: string;
   title: string;
   columns: Column[];
 }
@@ -63,11 +66,29 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
         const data = await response.json();
 
         if (data.success && data.data.board) {
-          setBoard(data.data.board);
+          // Ensure every object has both _id and id available for compatibility
+          const boardData = data.data.board;
+          const processedBoard = {
+            ...boardData,
+            _id: boardData._id || boardData.id,
+            id: boardData.id || boardData._id,
+            columns: boardData.columns.map((col: any) => ({
+              ...col,
+              _id: col._id || col.id,
+              id: col.id || col._id,
+              tasks: col.tasks.map((task: any) => ({
+                ...task,
+                _id: task._id || task.id,
+                id: task.id || task._id,
+              }))
+            }))
+          };
+          
+          setBoard(processedBoard);
           // Initialize socket connection
           socketInit();
           // Join board room
-          joinBoard(data.data.board.id);
+          joinBoard(processedBoard.id);
         } else {
           setBoard(null);
         }
