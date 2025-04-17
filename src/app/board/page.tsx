@@ -34,7 +34,8 @@ import {
 } from '@dnd-kit/sortable';
 import {
   restrictToParentElement,
-  restrictToWindowEdges
+  restrictToWindowEdges,
+  snapCenterToCursor
 } from '@dnd-kit/modifiers';
 
 // Import interfaces for the Board context
@@ -382,7 +383,7 @@ const BoardContent = () => {
                 strategy: MeasuringStrategy.Always
               },
             }}
-            modifiers={[restrictToWindowEdges]}
+            modifiers={[restrictToWindowEdges, snapCenterToCursor]}
           >
             <div className="flex space-x-4 min-h-[calc(100vh-10rem)]">
               <SortableContext 
@@ -407,25 +408,31 @@ const BoardContent = () => {
               </SortableContext>
               
               {/* Add DragOverlay for improved visual feedback */}
-              <DragOverlay adjustScale={true} dropAnimation={{
-                duration: 250,
-                easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
-                sideEffects: defaultDropAnimationSideEffects({
-                  styles: {
-                    active: {
-                      opacity: '0.5',
+              <DragOverlay 
+                adjustScale={false} 
+                dropAnimation={{
+                  duration: 250,
+                  easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+                  sideEffects: defaultDropAnimationSideEffects({
+                    styles: {
+                      active: {
+                        opacity: '0.5',
+                      },
                     },
-                  },
-                }),
-              }}>
+                  }),
+                }}
+                modifiers={[snapCenterToCursor]}
+              >
                 {activeTaskId && board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId)) && (
-                  <Task
-                    id={activeTaskId}
-                    title={board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId))?.title || ''}
-                    description={board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId))?.description || ''}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
-                  />
+                  <div style={{ width: '17rem' }}> {/* Fixed width container for task */}
+                    <Task
+                      id={activeTaskId}
+                      title={board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId))?.title || ''}
+                      description={board.columns.flatMap(col => col.tasks).find(task => (task.id === activeTaskId || task._id === activeTaskId))?.description || ''}
+                      onEdit={() => {}}
+                      onDelete={() => {}}
+                    />
+                  </div>
                 )}
                 {activeColumnId && board.columns.find(col => (col.id === activeColumnId || col._id === activeColumnId)) && (
                   <div className="opacity-70 w-72 h-[300px] bg-gray-100 rounded-md shadow-md border-2 border-blue-400">

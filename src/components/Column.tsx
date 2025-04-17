@@ -69,6 +69,8 @@ export default function Column({
     transition,
     zIndex: isDragging ? 1000 : "auto",
     touchAction: "none",
+    width: '18rem',
+    transformOrigin: '0 0',
   };
 
   const handleTitleSubmit = (e: React.FormEvent) => {

@@ -67,6 +67,8 @@ export default function Task({ id, title, description, onEdit, onDelete }: TaskP
     zIndex: isDragging ? 100 : 'auto',
     position: 'relative' as const,
     touchAction: 'none',
+    width: 'calc(100% - 4px)',
+    transformOrigin: '0 0',
   };
 
   const handleMenuToggle = (e: React.MouseEvent) => {
