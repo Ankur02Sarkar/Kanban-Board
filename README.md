@@ -86,6 +86,8 @@ src/
 
 ## API Documentation
 
+Important Note on API Usage: The base URL for all API endpoints is the same as the deployed application's domain. For example, to access the `/api/board` endpoint, you would use: `https://kanbanboard-pixeltech.vercel.app/api/board`
+
 ### Authentication
 
 - **POST /api/auth/signup**
